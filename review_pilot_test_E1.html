@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&family=Kanit:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" integrity="sha384-tViUnnbYAV00FLIhhi3v/dWt3Jxw4gZQcNoSCxCIFNJVCx7/D55/wXsrNIRANwdD" crossorigin="anonymous">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏨</text></svg>">
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+    <title>SG01 - Sincerity Research Labeling Tool</title>
+    <style>
+        body { font-family: 'Prompt', sans-serif; background-color: #f8f9fa; padding: 20px; color: #333; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        h2 { font-family: 'Kanit', sans-serif; text-align: center; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .data-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 20px; margin-bottom: 25px; }
+        .label { font-weight: bold; color: #555; display: block; margin-bottom: 5px; }
+        .content-box { background: #f1f8ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #007bff; white-space: pre-wrap; }
+        .response-box { background: #f6fff6; border-left: 4px solid #28a745; }
+        .input-group { margin-bottom: 20px; padding: 15px; background: #fff9f0; border-radius: 10px; border: 1px solid #ffeeba; }
+        select, input { padding: 10px; width: 100%; border-radius: 5px; border: 1px solid #ccc; margin-top: 5px; font-size: 16px; }
+        .btn-next { background: #28a745; color: white; padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-size: 18px; font-weight: bold; transition: 0.3s; }
+        .btn-next:hover { background: #218838; }
+        .progress { text-align: center; margin-bottom: 15px; font-weight: bold; color: #666; }
+
+        /* เพิ่มลูกเล่นเวลาเอาเมาส์ไปชี้ ให้ปุ่มดูมีมิติแต่ไม่ใหญ่เกินไป */
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+        }
+        /* ปรับขนาดฟอนต์ในปุ่มให้พอดี */
+        .btn {
+            font-size: 0.95rem;
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+    </style>
+
+</head>
+<body>
+
+<div class="container">
+    <h2><i class="bi bi-buildings-fill"></i> ระบบลงรหัสการรีวิวโรงแรมหรูจากผู้รีวิวและผู้ตอบกลับ</h2>
+
+    <!-- คู่มือการลงรหัส -->
+    <div class="accordion mb-4 shadow-sm" id="manualAccordion">
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseManual">
+                    <i class="bi bi-info-circle-fill me-2"></i>&nbsp;เกณฑ์การตัดสินการลงรหัส&nbsp;(Gold Standard Checklist)
+                </button>
+            </h2>
+            <div id="collapseManual" class="accordion-collapse collapse" data-bs-parent="#manualAccordion">
+                <div class="accordion-body bg-white">
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-dark border-start border-4 border-primary ps-2"><i class="bi bi-search-heart text-primary"></i>&nbsp;มิติที่ 1: การวิเคราะห์รีวิวจากลูกค้า&nbsp;(Reviewer's Lens)</h6>
+                        <table class="table table-sm table-bordered mt-2 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="30%">หัวข้อ (Topic)</th>
+                                    <th>เกณฑ์พิจารณา (ให้เลือกหัวข้อที่เด่นที่สุด)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1. Riverside Location</td><td>เน้นทำเล วิวแม่น้ำ การเดินทางทางเรือ หรือบรรยากาศริมน้ำ</td></tr>
+                                <tr><td>2. Room Quality</td><td>เน้นห้องพัก ความสะอาด เตียงนอน อุปกรณ์ในห้อง (Core Product)</td></tr>
+                                <tr><td>3. Facilities & Dining</td><td>สระว่ายน้ำ สปา ห้องอาหาร รสชาติอาหาร พื้นที่ส่วนกลาง</td></tr>
+                                <tr><td>4. Staff & Service</td><td>มารยาท ความรวดเร็ว การแก้ปัญหาเฉพาะหน้าของพนักงาน</td></tr>
+                                <tr><td>5. Hotel Operations</td><td>ระบบจอง เช็คอิน/เอาท์ นโยบายความปลอดภัย การจัดการทั่วไป</td></tr>
+                                <tr><td>6. Value for Money</td><td>ความคุ้มค่าเมื่อเทียบราคาที่จ่ายกับสิ่งที่ได้รับ</td></tr>
+                            </tbody>
+                        </table>
+                        <div class="p-2 bg-warning bg-opacity-10 border-start border-4 border-warning">
+                            <strong><i class="bi bi-exclamation-triangle text-warning"></i>&nbsp;จุดสังเกต Sarcasm:</strong> หากดาวต่ำ (1-2) แต่ใช้คำชมเกินจริง เช่น <em>"ประทับใจมากที่น้ำไม่ไหล"</em> ให้ตอบ <strong>Yes</strong> ทันที
+                        </div>
+                    </div>
+
+                    <div>
+                        <h6 class="fw-bold text-dark border-start border-4 border-success ps-2"><i class="bi bi-search-heart text-primary"></i>&nbsp;มิติที่ 2: การวิเคราะห์การตอบกลับ&nbsp;(Responder's Lens)</h6>
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-6">
+                                <div class="card h-100 border-success">
+                                    <div class="card-header bg-success text-white py-1 small">Personalized (จริงใจ/เฉพาะบุคคล)</div>
+                                    <div class="card-body py-2">
+                                        <ul class="small mb-0">
+                                            <li>มีการระบุชื่อลูกค้า หรืออ้างถึงเหตุการณ์เฉพาะในรีวิว</li>
+                                            <li>ตอบโต้ประเด็นที่ลูกค้าติชมโดยตรง (ไม่ข้ามประเด็น)</li>
+                                            <li>น้ำเสียงดูเป็นมนุษย์ (Human Touch) ไม่ใช่หุ่นยนต์</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card h-100 border-secondary">
+                                    <div class="card-header bg-secondary text-white py-1 small">Template-based (ตามรูปแบบ/มาตรฐาน)</div>
+                                    <div class="card-body py-2">
+                                        <ul class="small mb-0">
+                                            <li>ข้อความเหมือนเดิมเป๊ะในหลายๆ รีวิว (Copy-Paste)</li>
+                                            <li>ไม่พูดถึงประเด็นที่ลูกค้าบ่น แค่ขอบคุณและขออภัยตามมารยาท</li>
+                                            <li>มักจบด้วยประโยคมาตรฐาน "Hope to see you again" เสมอ</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 text-danger small font-italic">
+                        * หมายเหตุ: หากพบบุคคลหลุดรอด (PII) ห้ามบันทึก และกรุณาแจ้ง ผศ.ดร.ชัชฎาพร ปุกแก้ว (094 616 6454) ทันทีตามจริยธรรมวิจัย
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- จบคู่มือการลงรหัส -->
+
+    <div class="mb-4"> 
+        <div class="d-flex justify-content-between mb-2">
+            <span class="fw-bold">
+                ความคืบหน้าในการลงรหัส <i class="bi bi-card-text text-primary"></i>&nbsp;Review ID&nbsp;<i class="bi bi-fast-forward-fill text-success"></i>&nbsp;<span id="dataId" class="fw-bold">---</span>
+            </span>
+            <div>
+                กำลังอยู่ทำรายการที่&nbsp;<i class="bi bi-fast-forward-fill text-success"></i>&nbsp;<span id="currentNumber">0</span>&nbsp;/&nbsp;<span id="totalNumber">1,060</span>
+            </div>
+            <span id="progressPercent" class="badge bg-success fs-6">0%</span>
+        </div>
+        <div class="progress" style="height: 15px; border-radius: 7.5px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);">
+            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
+                role="progressbar" style="width: 0%; font-weight: bold; font-size: 1.1rem;">
+                0/1060
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info border-0 shadow-sm d-flex align-items-center" style="background-color: #fff4f9; border-radius: 15px;">
+    <div class="fs-1 me-3">📝</div>
+        <div>
+            <h6 class="alert-heading mb-1 fw-bold" style="color: #d63384;">รบกวนผู้เชี่ยวชาญทุกท่าน...</h6>
+            <p class="mb-0 small" style="color: #6c757d;">
+                ตรงที่มีเครื่องหมาย <i class="bi bi-asterisk text-danger"></i>
+                ฝากช่วยเติมข้อมูลให้ครบถ้วนและแม่นยำ เพื่อให้งานวิจัยของเราออกมาสมบูรณ์ที่สุดนะคะ 
+                <span style="color: #ff69b4;">ขอบคุณที่เหนื่อยไปด้วยกันนะคะ สู้ๆ ค่ะ! 🌸✨</span>
+            </p>
+        </div>
+    </div>
+
+    <div class="input-group input-group-sm mb-3" style="max-width: 400px; margin: 0 auto;">
+        <span class="input-group-text">Jump to review number:</span>&nbsp;
+        <input type="number" id="jumpToIndex" class="form-control" placeholder="Ex. 500" size="10">&nbsp;
+        <button class="btn btn-outline-secondary btn-success text-white" onclick="jumpTo()">ไป</button>
+    </div>
+
+    <script>
+    function jumpTo() {
+        let target = parseInt(document.getElementById('jumpToIndex').value);
+        if (target > 0 && target <= dataset.length) {
+            currentIndex = target - 1;
+            localStorage.setItem('maeChada_progress', currentIndex);
+            renderItem();
+        } else {
+            alert("ระบุตัวเลขไม่ถูกต้องค่ะแม่");
+        }
+    }
+    </script>
+
+    <div class="data-card">
+        <span class="label"><i class="bi bi-chat-quote-fill"></i> รีวิวจากลูกค้า:</span>
+        <div style="font-size: 0.9em; color: #777;">
+            คะแนน: <span id="rating"></span> ดาว
+        </div>
+        <div id="reviewText" class="content-box"></div>
+
+        <div class="input-group">
+            <label class="label">1. Topic (หัวข้อหลัก): (<i class="bi bi-asterisk text-danger"></i>)</label>
+            <select id="topic">
+                <option value="">-- โปรดเลือก --</option>
+                <option value="1. Riverside Location">1. Riverside Location</option>
+                <option value="2. Room Quality">2. Room Quality</option>
+                <option value="3. Facilities & Dining">3. Facilities & Dining</option>
+                <option value="4. Staff & Service">4. Staff & Service</option>
+                <option value="5. Hotel Operations">5. Hotel Operations</option>
+                <option value="6. Value for Money">6. Value for Money</option>
+            </select>
+
+            <br><br>
+            <label class="label">2. Reviewer's Sarcasm (รีวิวแบบการประชดประชัน): (<i class="bi bi-asterisk text-danger"></i>)</label>
+            <select id="sarcasm">
+                <option value="No">No (ไม่พบ)</option>
+                <option value="Yes">Yes (พบการประชดประชัน)</option>
+            </select>
+        </div>
+
+        <span class="label"><i class="bi bi-chat-left-quote-fill"></i> การตอบกลับจากโรงแรม:</span>
+        <div style="font-size: 0.9em; color: #777;">
+            ระยะเวลาตอบ: <span id="time"></span> วัน
+        </div>
+        <div id="responseText" class="content-box response-box"></div>
+    </div>
+
+    <div class="input-group">
+        <label class="label">3. Responder's Sincerity (ความจริงใจ): (<i class="bi bi-asterisk text-danger"></i>)</label>
+        <select id="sincerity">
+            <option value="Personalized">Personalized (ตอบแบบใส่ใจเฉพาะบุคคล)</option>
+            <option value="Template-based">Template-based (ตอบตามรูปแบบมาตรฐาน)</option>
+            <option value="N/A">No Response (ไม่มีการตอบกลับลูกค้า)</option>
+        </select>
+
+        <label class="label mt-3">4. Additional Comments (ความคิดเห็นเพิ่มเติม):</label>
+        <input type="text" id="comments" placeholder="ถ้ามี (ไม่บังคับ)">
+    </div>
+
+    <div class="d-flex justify-content-center gap-3 mt-4 mb-5">
+        <button id="btnBack" class="btn btn-outline-secondary px-4 fw-bold shadow-sm" onclick="goBack()" style="border-radius: 10px; transition: 0.3s;"
+            <i class="bi bi-arrow-left-circle"></i>&nbsp;ย้อนกลับไปข้อก่อนหน้า
+        </button>
+        
+        <button class="btn btn-success px-5 fw-bold shadow-sm btn-next" onclick="submitAndNext()" style="border-radius: 10px; transition: 0.3s;">
+            บันทึก&nbsp;<i class="bi bi-floppy2"></i>&nbsp;และไปรายการถัดไป <i class="bi bi-arrow-right-circle"></i>
+        </button>
+    </div>    
+</div>
+
+<script>
+    // *** URL สำหรับบันทึกคำตอบ ***
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwhKoDEVlJ5eIPFCmWHnYyJKDMDpusYv2bF4HlzXLd7C2mj2D_oxu-H5L8nqT9Z0fNx/exec";
+    const EXPERT_NAME = "Expert_1_Pilot"; // เปลี่ยนชื่อผู้เชี่ยวชาญตามต้องการ
+    // ข้อมูล 60 รายการ
+    let dataset = [
+    {
+        "id": 2001,
+        "rating": 5,
+        "time": 0.0,
+        "review": "We held our wedding lunch at Jade and stayed in a room at [HOTEL_NAME] Hotel, and the entire experience was wonderful.\n\nThe room was clean and comfortable, and the service from the hotel staff was excellent throughout our stay. Everything felt well taken care of, which made our special day even more enjoyable.\n\nThe wedding food was amazing as well — all our guests loved it and had great things to say.\n\nA special shoutout to our coordinator, [NAME], who did an amazing job. Everything was very well coordinated, and the whole event went smoothly from start to finish. We truly appreciate her effort in making sure everything was perfect.\n\nHighly recommended for anyone planning a wedding or special occasion!",
+        "response": "Dear [NAME],\n\nThank you for sharing your wonderful experience! We are delighted that your wedding lunch at Jade and stay at [HOTEL] made your special day memorable.\n\nIt’s great to hear that you enjoyed your room, the excellent service, and the wedding cuisine. Will be sure to pass along your heartfelt praise to [NAME], she will be delighted to know her efforts made your day run smoothly.\n\nThank you again for recommending us, and we look forward to welcoming you back for future celebrations!\n\nYours sincerely,\n\n[NAME] General Manager"
+    },
+    {
+        "id": 2013,
+        "rating": 5,
+        "time": 3.0,
+        "review": "Great service, great staff and great venue!! \n\nWe had our wedding dinner on the 1st March 2026 and we are thankful to have chosen [NAME] as our wedding dinner venue. \n\nThank you to all the staff who helped made our wedding dinner a success!!\n\nOur event planner’s friendliness and dedication helped made our planning a great and enjoyable one!! Thanks for helping to coordinate the multiple parties!! And thanks for all the help and accommodating our requests whenever you can! \n[NAME] also helped ensured that the planning process will be smooth and seamless when there are staff changes etc! Thanks for the great experience!! \n\nThey offered rehearsal before the big day to ensure our montages and March-ins songs are playing right! \n\nBanquet manager and team were really great!! They helped to coordinate with the emcee and coordinator buddy too! And their presence throughout the dinner helps assure us as well that we can always approach them for help/last minute changes!! \n\nThank you chef for preparing the dishes in such a great scale too and helping to cook it in time so that the serving is timely too!! Thanks for coming out to congratulate us too at the end of dinner, it’s such a warm gesture!!\n\nThank you [NAME]!!",
+        "response": "Dear [NAME],\n\nThank you for your wonderful review and for choosing [HOTEL] for your wedding celebration. We are honoured to have been part of such a special milestone in your lives.\n\nIt brings us great joy to hear that you had a memorable experience, from the planning process with our event planner to the rehearsal, banquet coordination, and the wedding dinner itself. Your kind words about our banquet team, chef, and service team mean a lot to all of us, and we will be sure to share your compliments with the entire team.\n\nWe are glad that our team was able to support you throughout the planning journey and ensure everything ran smoothly on your big day. Once again, thank you for celebrating this beautiful occasion with us. We look forward to welcoming you back to [HOTEL] for many more special moments in the future.\n\nYours sincerely,\n\n[NAME] General Manager"
+    },
+    {
+        "id": 2026,
+        "rating": 5,
+        "time": 2.0,
+        "review": "We can fully recommend , the [LOCATION]. Thankyou for the wonderful stay, an awesome time was had. Mr [NAME] , thanks for your Welcome,  greetings,Professional advice .Very much appreciated.  To ALL Staff and your [NAME], also. [HOTEL] breakfast, [HOTEL], with a great Barista doing [NAME] , another [NAME]  experience there.  To [NAME], many thanks, so good in his work at the [HOTEL]. Totally suited, great PR. See you again, [NAME].",
+        "response": "Dear [HOTEL],\n\nThank you for your wonderful recommendation and for choosing to stay with us at [HOTEL_NAME] Hotel Singapore. We are delighted to hear that you had such an awesome stay and enjoyed our buffet breakfast, coffee, and the experience at [HOTEL].\n\nYour kind recognition of Mr. [NAME], [NAME], and our team means a lot, and we will be sure to share your compliments with them. We look forward to welcoming you back for another memorable stay in [LOCATION] soon!\n\nYours sincerely,\n\n[NAME] General Manager"
+    },
+    {
+        "id": 2036,
+        "rating": 5,
+        "time": 3.0,
+        "review": "I rated [HOTEL] five out of five stars because it was unsurpassed in [HOTEL], which includes the front desk attendants, [HOTEL]-hops, operator assistance, and restaurant seating. Also factoring into this rating is the loveliness of the rooms, the lobby, and the entire property.  The swimming pool was also beautiful with an amazing view of the bay and city. I highly recommend this hotel for anyone staying in [LOCATION].",
+        "response": "Dear [NAME],\n\nThank you for your wonderful review and recommendation! We are delighted to hear that you enjoyed our rooms, facilities, and the service from our team. Your kind words mean a lot to us. We hope to have the pleasure of welcoming you back to [HOTEL] again soon.\n\nYours sincerely,\n\n[NAME] General Manager"
+    },
+    {
+        "id": 2044,
+        "rating": 3,
+        "time": 2.0,
+        "review": "sadly a suprisingly disappointing stay\n\nstayed here several nights, very very busy hotel, previously hotel was a post office, seems like they have continued the theme as lobby was like a bus stop, people everywhere.\n\nlots of staff, but no one every opened the doors or greated us, i assume they cant identify guests from photographers in the entrance/lobby\n\nimpossible to make any interactions with any staff as everything was so busy, hence a totally impersonal stay\n\nno comfy armchairs/sofa to sit, only conference room chairs... hence you are either in your room, or out the hotel, such a shame as if they had some big comfy sofa's you could sit in the lobby and spend money and people watch\n\nbreakfast was the worst, all the food was low quality,  [NAME] tasted like a low grade sausage. pastrys didnt taste like they were baked on site, very sugary flavour\n\ni was looking forward to a laksa, they do a [HOTEL] version, yet no boiled egg, no beansprouts, instead, tomato, peppers and cabbage, , even the broth was watery, i really dont understand this, these are not laksa ingredients..... Also the one prawn only they do give you is completely shelled, hence they want you to de-shell with laksa soup spraying everywhere.\n\nApart from the fresh juice and [NAME] station, i liiterally forfieted brekkie and went to [HOTEL] for some outstanding food instead\n\ni dont like the fact there is no plastic bottle to drink from in the room, i understand the reason, but at night i might knock over the free glass cup\n\nhotel bear for the kids, $23 [HOTEL], apparently money is for charity.....\n\n3 * 's given as they do have a  nice room (inc japanese toilet) and really good location to a MTR station, Boat Quay and [HOTEL] food centres\n\nthis is average 4* hotel impostering as a high end 5* hotel",
+        "response": "Dear [NAME],\n\nThank you for taking the time to share your detailed feedback about your recent stay at our hotel. We sincerely apologize that your experience did not meet your expectations.\n\nWe appreciate your observations regarding the lobby atmosphere and the difficulty in interacting with staff. We understand how a busy environment can feel impersonal, and we are actively reviewing ways to improve guest greetings and accessibility, especially during peak times.\n\nWe are also sorry that our breakfast offerings did not meet your expectations. Your comments about the [HOTEL] laksa, pastries, and dim sum are helpful, and we will share these with our culinary team to ensure our food quality and presentation better reflect our standards.\n\nRegarding seating in the lobby and the absence of bottled water in rooms,  we will explore how to enhance guest comfort while staying aligned with our sustainability initiatives.\n\nWe are glad to hear you enjoyed your room and our convenient location. Your feedback is invaluable in helping us improve, and we hope you might consider giving us another opportunity to provide the high-quality experience we strive for.\n\nYours sincerely,\n\n[NAME] General Manager"
+    },
+    {
+        "id": 2056,
+        "rating": 5,
+        "time": 2.0,
+        "review": "This was my 2nd visit to [LOCATION], and my 2nd stay at The [NAME].\nIt cannot be beaten in terms of location, quality and wonderful hospitality.\nAll of the staff were superb.\nA special mention to [NAME], who looked after us (myself and my 85-yr old mother) and made sure everything was perfect for us.\nThis included an amazing sidecar tour for us both, and also some emergency root canal treatment for myself - with further thanks to the 2x concierges for help in arranging this.\nWe really couldn’t have been in better hands.\nI will certainly be back for a 3rd visit!",
+        "response": "[HOTEL],\n\nThank you for your wonderful review and for choosing [HOTEL] once again for your visit. We are honored by your continued support in us.\n\nWe are pleased to hear that [NAME] and our concierge team took great care of you and your mother, ensuring everything was seamless even during the unexpected circumstances.\n\nYour kind words mean so much to us, and we look forward to welcoming you back for your third stay!\n\nYours sincerely,\n\n[NAME] General Manager"
+    },
+    {
+        "id": 2065,
+        "rating": 5,
+        "time": 4.0,
+        "review": "[HOTEL_NAME] Hotel [LOCATION] stole my heart this chinese new year. Blown away by the warm, friendly and super attentive team at [HOTEL], elevating our staycation experience. Despite the holiday season, service standards were not compromised. The whole family had a very memorable time. Definitely how we like to spend our holidays!",
+        "response": "Dear [NAME],\n\nThank you for choosing [HOTEL] for your Chinese New Year staycation and for sharing such a lovely review.\n\nWe are delighted to hear that the [HOTEL] team made a strong impression with their warm and attentive service, especially during the festive season. It’s wonderful to know that our service standards helped elevate your family’s celebration and create meaningful memories.\n\nWe look forward to welcoming you and your family back for many more special holidays to come.\n\nYours sincerely,\n\n[NAME] General Manager"
+    },
+    {
+        "id": 2070,
+        "rating": 5,
+        "time": 5.0,
+        "review": "I had a wonderful stay at one of the suites of [HOTEL], and I would like to express my sincere appreciation to [NAME], [NAME] and [NAME] for making the experience extra memorable.\n\nFrom the moment I arrived, both of them showed exceptional hospitality, professionalism, and genuine warmth. Their attentiveness and willingness to go the extra mile made me feel truly welcomed and well cared for throughout my stay. Every interaction was pleasant, and their positive attitude and attention to detail reflected the high standards of the hotel.\n\nIt’s employees like [NAME], [NAME] and [NAME] who turn a good stay into an outstanding one. Thank you for your excellent service — I look forward to returning again soon.",
+        "response": "Dear [NAME],\n\nThank you for taking the time to share your wonderful review. We are delighted to hear that you enjoyed your stay in one of our suites and that [NAME], [NAME], and [NAME] helped make your experience extra memorable.\n\nYour kind words about their hospitality, professionalism, and genuine warmth mean a lot to us. Your compliments will be shared with the team, they will be glad to know that they contributed to making your stay outstanding.\n\nThank you once again for choosing [HOTEL]. We look forward to welcoming you back for another exceptional stay in the near future.\n\nYours sincerely,\n\n[NAME] General Manager"
+    },
+    {
+        "id": 2079,
+        "rating": 5,
+        "time": 1.0,
+        "review": "Our stay at The [NAME] was really fantastic. We stayed in an [LOCATION] bedroom on level 8 which was generous in size and amazing with views. Our bedroom afforded us access to [HOTEL] which was also a great experience. As we have friends in [LOCATION], we dined on one evening only in the hotel, we choose the a la carte menu in the [LOCATION] restaurant, which was delightful! The [HOTEL] is very well maintained and spotlessly clean and all the team members we encountered very super energetic and eager to assist. Special mention about [HOTEL] who offered excellent service! Looking forward to returning again soon.",
+        "response": "Dear [NAME],\n\nThank you for your wonderful review. We are delighted to hear that your stay in the Esplanade Room was memorable and that you enjoyed the views and [HOTEL] experience. It’s also great to know you had a delightful evening at Town Restaurant.\n\nThank you about your kind words about our team, especially to [HOTEL]. We will be sure to share your compliments with him. We appreciate your support and we look forward to welcoming you back again soon.\n\nYours sincerely,\n\n[NAME] General Manager"
+    },
+    {
+        "id": 2090,
+        "rating": 5,
+        "time": 2.0,
+        "review": "Location central, [LOCATION] nearby, every destination is easily accessible, brilliant Atmosphere, very good service, friendly and courteous Team in every area, perfect hygiene and cleanliness, amenities wherever you look! [NAME]!!!",
+        "response": "Dear [NAME],\n\nThank you for your wonderful review! We are delighted to hear that you enjoyed our central location, the atmosphere, and the convenience of getting around. We are glad you appreciated the amenities throughout the property. We hope to welcome you back again soon!\n\nYours sincerely,\n\n[NAME] General Manager"
+    },
+    {
+        "id": 2101,
+        "rating": 5,
+        "time": 3.0,
+        "review": "We are amazed that a post office turned into a fabulous hotel. The preservation of the structure and furniture intact narrates a wonderful legacy, culture and history of the country. \nStaff are so lovely and [HOTEL] are so very clean and tidy",
+        "response": "Dear [NAME],\n\nThank you for your wonderful review. We are delighted you enjoyed the heritage of the building, our clean and comfortable rooms, and the warm service from our team. We hope to welcome you back again soon.\n\nYours sincerely,\n\n[NAME] General Manager"
+    },
+    {
+        "id": 2109,
+        "rating": 5,
+        "time": 2.0,
+        "review": "I have been to [LOCATION] many times and I am annoyed at myself that we did not stay at the [NAME] earlier.  What a beautiful and iconic hotel.  The location could not be any better - so convenient to the Merlion, the bay, the city and shops.  The rooms were quite spacious, amenities were on point and the beds were really comfortable.  After visiting [LOCATION], I was also pleasantly surprised to see the high-tech toilets in the rooms! While the weather was not the best pool weather, I still loved sitting out there to enjoy the views - and the ice cream!  Not only is the place pretty on the inside and outside, but the service and attention were really the best part. [NAME], the asst front office manager, was so kind and welcoming - and definitely made our stay memorable.  I am really looking forward for our next trip out here.",
+        "response": "Dear [NAME],\n\nThank you for your wonderful review! We are you enjoyed our iconic hotel, convenient location, spacious rooms, and attentive service. We are glad that [NAME] made your stay memorable. It’s wonderful to hear you appreciated even the little touches, like the pool views and ice cream! We hope to welcome you back on your next trip to [LOCATION].\n\nYours sincerely,\n\n[NAME] General Manager"
+    },
+    {
+        "id": 2124,
+        "rating": 5,
+        "time": 1.0,
+        "review": "Spent a birthday weekend here and enjoyed every aspect of the hotel facilities:\n\nThe Hotel: A stunning property. The blend of heritage charm and modern luxury is unique in [LOCATION].\n\n[HOTEL]: We loved the exclusivity of the lounge. It’s beautifully designed with a quiet, sophisticated ambiance perfect for relaxing. The food and champagne served here were top-notch.\n\nThe Spa: An excellent facility. The massage was rejuvenating and very much needed.\n\nDining (Jade): We had a fantastic dinner at Jade. The ambiance is elegant with its silk lanterns. Highly recommend the Braised Abalone (tender and flavorful) and [HOTEL] (fresh and generous).\n\nThank you to the team for making this birthday celebration so special!",
+        "response": "Dear [NAME],\n\nThank you for sharing your wonderful review. We are delighted that your birthday weekend with us was flawless and that you enjoyed every aspect of your stay, from the heritage charm of the hotel to [HOTEL], The Spa, and your dining experience at Jade.\n\nYour kind compliments on the ambiance, cuisine, and overall experience mean a lot to our team. We are honored to have been part of your special celebration and we look forward to welcoming you back again soon.\n\nYours sincerely,\n\n[NAME] General Manager"
+    },
+    {
+        "id": 2131,
+        "rating": 5,
+        "time": 1.0,
+        "review": "One of our best hotel experiences ever. The [NAME] maintains it's rich history across every aspect of the hotel while being on top of current day expectations around comfort. Facilities in the gym, spa, rooms were right up there. A water filter tap in each room, so no running around hotels trying to fill up your bottle if you don't want the totally safe water from the tap. History books in the room, photos on the walls, you can't help but feel honoured to be there. But above everything it was the staff, they thought of everything before we asked, offering advice and assistance to help my sister and I with our 7 kids. And when we did ask for anything, they made every attempt to make it happen. Also if you are runner, it's the perfect location for a very scenic run.",
+        "response": "Dear [NAME],\n\nThank you for this wonderful and thoughtful review. We are honored to be part of one of your best hotel experiences and delighted that you enjoyed the blend of our rich history, modern comfort, and sustainability features.\n\nIt’s great to hear that our team was able to anticipate your needs and support you and your family throughout your stay. We hope to welcome you back to [HOTEL] soon.\n\nYours sincerely,\n\n[NAME] General Manager"
+    },
+    {
+        "id": 2140,
+        "rating": 5,
+        "time": 2.0,
+        "review": "From the moment we were greeted at reception and accompanied to our room by [NAME], to the wonderful room amenity and 25th anniversary strawberries & superb service  courtesy of Han, [NAME] and [NAME] in the [HOTEL] lounge, we were wowed and overwhelmed by the hospitality, service and comfort of [LOCATION]. This is not a stay - it’s a destination. Make sure you put it on the list! Thank you [NAME] for your incredible hospitality.",
+        "response": "Dear [NAME],\n\nThank you for your wonderful review. We are delighted to hear that your experience at [HOTEL_NAME] Hotel Singapore was memorable, from [HOTEL]’s warm welcome to the thoughtful anniversary touches and exceptional service from Han, [NAME], and [NAME] in the [HOTEL] lounge. Your kind words mean a lot to our team, and we look forward to welcoming you back again soon!\n\nYours sincerely,\n\n[NAME] General Manager"
+    },
+    {
+        "id": 4,
+        "rating": 5,
+        "time": "-",
+        "review": "We got a suite overlooking the gardens, our room was simply huge incorporating a separate lounge, main bedroom, shower, separate bath plus his and her vanities, bar fridge with tea , espresso coffee plus water and lots of chocolates (all complimentary ), 2 huge TVs not that we watched them and two balconies with sliding doors you can open fully to get the lovely warm breeze flowing through. The bed and pillows were super comfortable, had a bit of trouble sorting out the electronic controls for the lights and blinds but got\nit in the end. We didnt want to leave, sat by the infinity pool most of the time and enjoyed the view getting ready for our next flight out ☺️",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 9,
+        "rating": 5,
+        "time": "-",
+        "review": "There are really no words to adequately describe how beautiful [LOCATION] is. We spent 24 hours there as a special treat for my husband’s 60th before we moved to our more typical hotel type. The entire staff went over and above to ensure every tiny single detail was special. From the flowers in our room, to the incredible food , to the birthday cake they made my husband - we felt like we were their most special VIP guests. I can assure you, we weren’t…. They just made us feel that way. \n\n I want to call out [NAME] at the infinity pool for her smiley disposition and her desire to help in any way she could, [NAME] our incredible butler (yes… we had a butler! A first for us)  for truly exceptional service in every way and most importantly, [LOCATION] for the impeccable job she does for every client at the hotel. She is just amazing. \n\nIf you have the opportunity to experience [LOCATION] for any occasion, just go. Just don’t plan anything else in [LOCATION] as you won’t want to leave the hotel.",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 26,
+        "rating": 5,
+        "time": "-",
+        "review": "Truly amazing experience that made me feel at home without being at home. Staff were extremely friendly, interactive and caring. Special mentions to the pool lifeguards (Joel and the supervisor on the shift) their warm and such lovable attitude which ensuring our safety yet making our pool time so pleasant and enjoyable. Keep up the amazing efforts and warm attitude! Really appreciate the hospitality keep up the good work!",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 30,
+        "rating": 5,
+        "time": "-",
+        "review": "We recently had the pleasure of spending six wonderful days at [LOCATION] and the experience will stay with us for a very very long time. The accommodation was exceptional, very luxurious, spacious, spotless, well stocked fridge and bar, and an amazing view from the balcony, including watching the sun rise over [LOCATION] and seeing the two light shows in the evening. The location is perfect for visiting many of the great sights and experiences on foot; namely, [NAME] by the [LOCATION] which includes [HOTEL] and Flower Garden, the Merlion fountain and [HOTEL].\nThe maze of shops, restaurants, eateries, designer stores, underground  [HOTEL] station, [NAME], to name a few are all within the hotel vicinity so you don’t need to venture outside if you wish.\nThe Staff at [HOTEL_NAME] were also exceptional, going above and beyond to make our stay as comfortable as possible. Our ‘welcome manager’ [NAME] was so lovely, her input on our first day was informative and her bubbly personality made us feel relaxed and reassured;  she was always available too if we needed advice about anything. She kindly organised our ride to the airport and [NAME] from [NAME] took over, checking our luggage in and even taking us through [NAME] airport to see the [NAME] fountain. \nWe enjoyed the complimentary breakfasts every morning at [HOTEL] overlooking the Infinity pool on the 57th floor! Again, the staff were friendly, efficient and any request was met with a friendly smile and prompt action. [NAME] and the whole team at [HOTEL] were always immaculate in their uniforms and professional in dealing with people from all over the world.\nI have recommended [LOCATION] to family and friends and am confident we’ll be returning there in future.",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 47,
+        "rating": 5,
+        "time": 10.0,
+        "review": "We had been to many different hotel around the world. [NAME] staffs had shown excellent service. From checking in trough out our stay. I never to get their name properly but [LOCATION] from front desk, she even ask the manager to asssist us with our concern. Denz from the pool such amazing staff,took care of our needs. It makes our stay feel very welcome. Thank you. We finally tried to see the iconic infinity pool❤️",
+        "response": "[HOTEL]Thank you for sharing your experience with us. I am delighted to hear that our team members from the front desk and infinity pool provided excellent service throughout your stay. They will be pleased to know that their attentiveness and support made you feel welcome.\n\nI hope to have the opportunity to welcome you back for another memorable stay with us.\n\nYours sincerely,\n[NAME]\nAssistant Vice President of [HOTEL]"
+    },
+    {
+        "id": 63,
+        "rating": 5,
+        "time": 14.0,
+        "review": "My wife and I spent two nights at [HOTEL_NAME] in a King suite with the premier service. We had an upstanding time and every detail was attended to. Upon arrival we were greeted by our concierge [NAME] who provided an excellent experience and attended to our every need. We received a nice bottle of champagne, red wine, pears and snacks. She invited us to several private events (that unfortunately we weren’t able to attend) such as the residence bar. We had a glorious half day at the infinity pool overlooking [LOCATION] with perfect weather.  The hotel and shops are gorgeous and the buffet breakfast has every imaginable food you would want (American, European, Singaporean, Chinese… etc.) The waiter had a special bowl of laksa made up for me- I never would have tried on my own. \n[NAME] also arranged to print out documents we needed for our cruise and arrange private luxury transport to the cruise terminal. What an amazing two days!  For a special occasion- or just for fun- I wholly recommend.",
+        "response": "Dear [NAME], \n\nThank you for sharing your wonderful review. I am delighted to hear that you and your wife had a memorable two-night stay with us.\n\nI am glad that [NAME] was able to attend to your needs, from providing complimentary offerings to printing out cruise documents and arranging transport service to the cruise terminal. It is also lovely to hear that our team member at [HOTEL] went the extra mile by sharing a local delicacy with you, making your stay even more special. Our team members take great pride in providing attentive and thoughtful service, and it is gratifying to know that you had a great your time during your visit.\n\nI am also pleased that you had an enjoyable time at the infinity pool, explored The [NAME], and loved the dining offerings available.\n\nYour warm recommendation means a great deal to us. I look forward to welcoming you back for another exceptional stay at [HOTEL_NAME]. \n\nYours sincerely,\n[NAME]\nAssistant Vice President of [HOTEL]"
+    },
+    {
+        "id": 66,
+        "rating": 1,
+        "time": 6.0,
+        "review": "First off the check in took 45 minutes. So we arrived at 3.00pm check in time. Then only one room was ready. So currently we are 80 min after arrival, all waiting for our other room key and bags to arrive in our children’s room. Wait, bags just arrived. Hardly the experience you’d expect from a supposed 5 star hotel. Then there is the awful view from the room on the 6th floor. I came here to test the hotel out to book an event here and they are singularly the worst check in experience in the over 70 countries I’ve visited including hundreds of hotels. I would give them a score of zero if Trip Advisor let me.",
+        "response": "Dear [NAME],\n\nI regret to learn about the inconvenience caused. I understand that a member of the team has reached out to you directly regarding your feedback during your stay. \n\nThank you. \n \nYours sincerely,\n[NAME]\nAssistant Vice President of [HOTEL]"
+    },
+    {
+        "id": 80,
+        "rating": 5,
+        "time": 17.0,
+        "review": "I had a 90’ Balinese massage with [HOTEL]. It was a very pleasant experience and exceeded my expectations. Starting from the reception and all the way through the massage, [HOTEL] was very friendly and professional, as well as the rest of the team. Highly recommend.",
+        "response": "Dear [NAME],\n \nI am thrilled to hear you had a pleasant Balinese massage and that the experience exceeded your expectations. Our team members will be delighted to know that their friendliness and professionalism left a meaningful impression on you.\n\nYour recommendation means a great deal to us, and I hope to have the opportunity of welcoming you back for another rejuvenating experience at [HOTEL_NAME]. \n\nYours sincerely,\n[NAME]\nAssistant Vice President of [HOTEL]"
+    },
+    {
+        "id": 92,
+        "rating": 4,
+        "time": 11.0,
+        "review": "A fascinating and luxury place to stay. The service was excellent, the room and access to the infinite pool as guests at the hotel made the stay enjoyable and memorable. For some the service level although first class can be a little claustrophobic - the mere hesitation and staff were there to ask if they could help - grateful and at time overwhelming. It also has the benefit of a number of restaurants on site (and direct access to the shopping mall  which is seamlessly air conditioned and access to [LOCATION] and the [LOCATION] train system), which are good but be prepared to pay the premium for dining at such an iconic location. They do not serve tap water at the restaurant tables and water is chargeable which is a first for us. The rooms are well equipped  with many additional chargeable items which are not always clear what in the room is free and what occurs a price. We accidentally opened one of the tea canisters and then found the ‘free’ tea bags. Once explained the hotel waived the charge for the canister of tea bags. We ate at [HOTEL] and although both enjoyable are at the high end of the price range. We have had better meals elsewhere at a fraction of the price. As a one off short stopover,  the experience was memorable and the opportunity to swim in an infinity pool 57 floors up was worth everything else. Would we recommend: yes. If you are going to stay ask for a room as high as is affordable for the views (either garden or city - both unique in their own way). Would we stay again…. maybe….. well ….. yes, just to swim in the infinity pool again!",
+        "response": "Dear [NAME],\n \nThank you for taking the time to share your experience with us. It is gratifying to know that your stay felt memorable and that the room and attentive service contributed positively to your visit. I am pleased to hear that you found our location convenient, especially to The [NAME], nearby attractions and the [LOCATION]. It is also wonderful to hear that the experience at the infinity pool became a highlight and created lasting memories for you.\n\nI appreciate your feedback and will certainly keep your comments in mind as we continue to enhance our guest experience.\n\nI hope to have the opportunity to welcome you back to experience more of what we have to offer.\n\nYours sincerely,\n[NAME]\nAssistant Vice President of [HOTEL]"
+    },
+    {
+        "id": 109,
+        "rating": 5,
+        "time": 8.0,
+        "review": "We were trying to get a Grab and asked [NAME] for assistance and he was very friendly,  always smiling and very knowledgeable of Grab service and where to go in [LOCATION], thank you [NAME], great meeting you and getting to know you such a short 10 minute window,  great personality..",
+        "response": "Dear [NAME],\n\nIt is gratifying to know that our team member, [NAME], was able to assist you in getting a [HOTEL] ride. I am delighted to hear that his friendly demeanor, knowledge of local transport and direction made such a positive impression. He will be thrilled to know that his genuine personality and helpfulness stood out during your visit. I will be sure to share your kind words with him. \n\nI hope to have the pleasure of welcoming you back for another memorable experience with us soon.\n \nYours sincerely,\n[NAME]\nAssistant Vice President of [HOTEL]"
+    },
+    {
+        "id": 119,
+        "rating": 5,
+        "time": 13.0,
+        "review": "I am very pleased to write this review for [LOCATION], because it exceeded my expectations even compared to a previous visit. The hotel is beautiful, the pool is unique, the restaurants ( we visit\" Ce la vi \", \"Spago\" and Rise ) have good food and attention to detail, but this time all the hotel staff made the difference, especially Miss [NAME]  and the person in charge of decorating the rooms, who ,from the first moment and throughout the stay, made us feel welcomed and special, not only fulfilling our every request but even going above and beyond! We are a family and we had \"premier\" rooms Gardens view (which I recommend) in the \"normal\" part of the hotel. We also really enjoyed the jazz session at \"The Residence  bar \"(included in the Premier Room facilities)and took advantage of the transfer from the airport. For these reasons I have no doubts in recommending this hotel to anyone who wants to add an extraordinary experience to the already extraordinary [LOCATION]!",
+        "response": "Dear [NAME] G,\n\nWelcome back to [LOCATION]. It is truly gratifying to know that your stay with us exceeded your expectations. I am delighted that you found the hotel and infinity pool beautiful and had a memorable dining experience at [HOTEL], [HOTEL], and [HOTEL]. \n\nI am pleased to hear that our team members made a meaningful difference throughout your stay. [NAME], along with our team members who prepared the room decorations, will be thrilled to know that their warm hospitality and dedication made you and your family feel welcomed and special. It is also wonderful to hear that [HOTEL] at the Residence Bar, and the airport transfer contributed to a positive experience.\n\nI hope to have the pleasure of welcoming you and your family back for another enjoyable time with us soon.\n \nYours sincerely,\n[NAME]\nAssistant Vice President of [HOTEL]"
+    },
+    {
+        "id": 136,
+        "rating": 5,
+        "time": 18.0,
+        "review": "Overall good experience, rooms was \nbeautiful, every single staff in the lobby will greet anyone with a smile. Eunice from premium service was outstanding and attention to detail, explaining to us every single details. [NAME] from housekeeping was very detail and had help to arrange our clothes and luggage. We had our breakfast in [LOCATION], one particular staff to be mention is [HOTEL], very friendly, presented himself very well to every table.  [NAME] was very helpful in infinity pool, she assisted us in the pool especially with our 5 year old daughter, when she saw we wanted to take a picture when we are all wet she actually came to us and assisted us. Finally, the kids club in tower 1, the staffs there was all so friendly and nice that our daughter nag at us the next day wanting to go again. The 2nd time when we brought her there my daughter was delighted and the staffs remembered her. Overall its the Best place for family to  be in for a vacation.",
+        "response": "Dear [NAME],\n\nThank you for sharing your great experience with us. I am delighted to know that our team members left such a meaningful impact throughout your visit. [NAME], [NAME], [HOTEL] and [LOCATION] will be pleased to know that their professionalism, personalised care and attentiveness made a meaningful difference during your stay. I will be sure to share your kind words with them.\n\nI am pleased to know that your daughter enjoyed her time at The Play Den and had the opportunity to experience it again during your time with us.\n\nI hope to have the pleasure of welcoming you and your family back for another exceptional visit.\n \nYours sincerely,\n[NAME]\nAssistant Vice President of [HOTEL]"
+    },
+    {
+        "id": 143,
+        "rating": 5,
+        "time": 19.0,
+        "review": "Fab visit - the rooms were fantastic - technology and features great including the toilet! Very spacious and beautifully decorated. We enjoyed our stay. Breakfast was good - only tried the buffet. Pool area was slightly cramped but service good.",
+        "response": "[HOTEL],\n\nThank you for sharing your review. I am delighted to know that you enjoyed our spacious and beautifully decorated suite, along with the thoughtful technological features and amenities. I am also pleased to know that you had a great breakfast experience, and that our team provided hospitable service at the infinity pool.\n\nI look forward to welcoming you back for another pleasant stay with us in the future.\n \nYours sincerely,\n[NAME]\nAssistant Vice President of [HOTEL]"
+    },
+    {
+        "id": 151,
+        "rating": 5,
+        "time": 12.0,
+        "review": "During our holiday in [LOCATION], we booked three nights at the iconic [LOCATION]. We were initially skeptical, wondering if [LOCATION] could actually live up to all the marketing and its image as a luxury hotel. Our stay at [HOTEL] exceeded our expectations once we got past the lobby. \n\nThe atrium didn’t feel grand. It was noisy and overwhelming with reception, concierge, bar, restaurant, and shops located in such a cavernous area. The Motion art installation by [HOTEL] was the only place to sit and was fully occupied.\n\nWe were directed to the private check-in room, which was much quieter than the atrium. [LOCATION] was welcoming and friendly as she diligently gathered the required information. She was also very helpful. The recommendation on where to purchase luggage to replace the piece of luggage that was damaged was very much appreciated. Gratitude to [LOCATION] your exemplary customer service.\n\nWe reserved a premier room. The aesthetic of the room was classic and refined.  The living and sleeping areas shared one large space with floor-to-ceiling windows with views of [LOCATION] by the [LOCATION]. The cozy sitting area included a fully stocked custom minibar.\n\nThe spa-like bathroom was large, well lit, with double sinks. The water closet was equipped with a [NAME] auto flush toilet with automatic open and close lid as well as a sink. \n\nThe other technology in the room was impressive. The standout feature for us was the baseboard level motion sensor subtle lights would show you the way to the toilet if you had to get up during the night.\n\nWe took full advantage of the amenities such as the pool, gym and restaurant. The rooftop infinity pool with stunning skyline views was spectacular. We did not find the pool overcrowded.  There is a separate area for adults. The gym was a good size facility with a variety of equipment. We ate breakfast at [HOTEL]. The meals were flavourful, satisfying and included a range of a la cart options.\n\n[LOCATION] is at the Bayfront MTR station which makes it ideal for exploring the different parts of [LOCATION] such as downtown. It’s a short walk to [NAME] by [LOCATION]. There is a high end shopping mall and casino connected to the hotel.\n\nIs [LOCATION] Sands worth it? Yes!",
+        "response": "Dear [HOTEL],\n \nThank you for your thoughtful review and for sharing your stay with us in detail. I am delighted to know that your experience with [LOCATION] Sands exceeded your expectations. \n\nI am pleased to hear that our team member, Belinda made a positive impact during your check in process. Her warm welcome, friendly assistance, and thoughtful recommendation are wonderful examples of the personalised service our team members strive to provide. \n\nIt is gratifying to know that you found your suite luxurious, refined, and well equipped. I am delighted to know that the view of Gardens by the Bay, the spa like bathroom, and thoughtful in-room technology, enhanced your comfort in meaningful ways. It is great to hear that you enjoyed [HOTEL], culinary offerings, and that the convenient connection to [NAME], The [NAME], the Casino and nearby attractions contributed positively to your stay.\n\nOnce again, thank you for your generous compliments, I am delighted that you feel that your stay at [HOTEL_NAME] is worthwhile. I sincerely hope to have the pleasure of welcoming you back for another memorable stay.\n\nYours sincerely,\n[NAME]\nAssistant Vice President of [HOTEL]"
+    },
+    {
+        "id": 162,
+        "rating": 5,
+        "time": 15.0,
+        "review": "This hotel is so iconic I wandered if it would live up to expectations.  It did. You have to accept that it's a [HOTEL] of money to stay but get over that and just enjoy the experience.  All the staff were polite, friendly and efficient and the attention to detail was incredible.  Prime example -  I hate my duvet being tucked in so pulled it all out the first night; the second night I noticed the room maid had left the bed untucked. Everywhere was spotless and when we noticed our bathroom light was not working properly they came to fix it before we'd even reported it.\nWe took advantage of the Aquafit class in the infinity pool at 5pm on the Wednesday.  Were advised to pre-book it but I think as a guest you could just join in. \nTo [NAME], stay for at least two nights.",
+        "response": "Dear The_Winborn-Pods,\n\nI am delighted to know that your stay with us exceeded your expectations. It is wonderful to hear that our team members made a positive impression with their polite, friendly and efficient service. I am pleased that their attention to detail enhanced your comfort, from noticing your duvet preference to proactively addressing the bathroom light issue before it was even reported. I am also glad that you enjoyed the Aquafit class at the Infinity Pool.\n\nThank you for sharing your review and I hope to have the pleasure of welcoming you back for another exceptional stay.\n\nYours sincerely,\n[NAME]\nAssistant Vice President of [HOTEL]"
+    },
+    {
+        "id": 4006,
+        "rating": 5,
+        "time": "-",
+        "review": "My experience at [HOTEL_NAME] was amazing from start to finish. The service was excellent, and the staff made us feel very welcome during our stay. We stayed there as a family and had a wonderful time enjoying the beautiful views of [LOCATION] from the hotel.\nThe room was very spacious, comfortable, and perfect for our family. The balcony had an incredible view of the city and the river, which made the stay even more special.\n[NAME] was amazing with many options to choose from, and everything was very well prepared. The hotel also offers many dining options, all with incredible views, making every meal a great experience.\nOverall, the quality of the hotel, the service, and the atmosphere made our stay truly memorable. We had a great experience and would definitely recommend it to anyone visiting [LOCATION].",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 4010,
+        "rating": 5,
+        "time": "-",
+        "review": "I’ve stayed at [HOTEL_NAME] many times and always had a lovely experience. The location is excellent, and the suites are incredibly spacious—especially the bedroom and bathroom, which are very comfortable. \nThis time, however, what made my stay especially memorable was the exceptional service from the Concierge . I had the pleasure of dealing with a wonderful young lady named [NAME]. I needed to order a product from a company, and what initially seemed like a complicated and stressful situation quickly became smooth and effortless thanks to her. She handled everything efficiently and professionally, taking full responsibility and ensuring the entire process was seamless. I truly couldn’t thank her enough—she made what could have been a headache into something completely stress-free.\nEven though the hotel may need a little refresh here and there, the warmth and professionalism of the staff—especially [NAME]—make all the difference. I will absolutely continue to stay at [HOTEL_NAME] in the future.",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 4027,
+        "rating": 5,
+        "time": "-",
+        "review": "I don’t know where to begin… It starts with the lovely welcome and services. The moment you get out of your cab thats the moment when you will feel like a royal family member. The employees are so kind and full of respect and love. I was helped by “Din”  and his co-worker but sadly forgot his name. But they clarified everything for me.\n\nThe breakfast was excellent\n\nNow the room… that was just amazing and clean to. I took the room with view over the river and it was to beautiful for words. The bathroom make me feel like in the movie “home alone” is was so big.\n\nThey also have a gym and pool, so there is enough things to workout .\n\nLast one is not to forget about the skybar! That is really a must visit experience. Also over there I met a security quard called “ [LOCATION]“ what a helpful man is that. Really kind and welcomes you with a smile and wil answer your question if you have them. \n\n[HOTEL] is a must visit experience and for the value worth it.",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 4033,
+        "rating": 5,
+        "time": "-",
+        "review": "[HOTEL] is that rare combination of old World charm, luxury and effortless superb customer service. Our 2 night stay was the perfect anniverary celebration location, starting at check in when we were escorted to a quiet wood panelled area off the lobby, given refreshing drinks, cooling towels, the process was quick, efficient and delivered to us ! As our suite was not quite ready we were escorted to [HOTEL], with stunning City views, tasty nibbles and a full bar service. The e mail confirmed our suite was ready, and we opened the door to the luxury that would be ours for the next 2 days, Suite # [NAME] is a beautiful 2 bed, 2 bathroom with a longe kitchenette and an additional luggage room, the huge wraparound balcony provided amazing views of the City and the [LOCATION]. We slept soundly in the luxurious bed, sipped coffee on our balcony before heading to breakfast, poolside where we were treated to a falconry display to scare off the pesky pigeons, before enjoying a gourmet breakfast, most hotels provide an egg chef, few include a breakfast meat chef, and your own \" toast master\". The perfect start for exploring the City before returning to [HOTEL] to escape the street heat. That evening we visited the Dome, famous for its location in the movie Hangover 2 and fabulous night City views. Sad to leave our home from home, but any return to the City must include a stay at Le Bua. If you havent, you must, you wont regret it. Thankyou Team Le Bua you exceeded our wildest expectations. [NAME]",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 4036,
+        "rating": 5,
+        "time": "-",
+        "review": "⭐⭐⭐⭐⭐ Exceptional Stay – Noo is the Best!\nOur stay at [HOTEL_NAME] was perfect. The food was excellent, and the entire hotel was incredibly clean with top-tier facilities.\nThe biggest highlight was our room keeper, [HOTEL]. She was so cheerful and happy every day! She kept our room spotless and surprised us with delicious chocolates.\nWe will definitely be back and will be recommending [HOTEL_NAME] to all our friends. Thank you, [HOTEL], for making our trip so special!",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 4042,
+        "rating": 5,
+        "time": "-",
+        "review": "Our airport representative, Mr. [NAME], was extremely accommodating and supportive upon our arrival at Don Mueang Airport. He was very helpful, courteous, and professional throughout the process. We sincerely appreciate his excellent assistance. Thank you very much.",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 4057,
+        "rating": 5,
+        "time": "-",
+        "review": "The staff are excellent especially the concierge who I believe was called [NAME] (apologies if I’ve misspelled his name.)\n\n[LOCATION] was varied and delicious.\n\nThe pool area is immaculate.\n\nAs for the room, I had a room with a stone balcony on the 25th floor. It was so comfortable and the view was mind blowing.\n\nThe hotel was situated away from the main road but close enough to walk to.\n\nHighly recommended",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 4067,
+        "rating": 5,
+        "time": "-",
+        "review": "This is genuinely one of the best hotels I’ve stayed in anywhere in the world. From the moment I arrived, everything was absolutely perfect.\n\nThe staff were exceptional – warm, professional, and always going above and beyond to make sure every detail was taken care of. The hotel itself is beautiful, spotless, and incredibly well maintained, with a real sense of calm despite being in the heart of [LOCATION].\n\nThe room was spacious, comfortable, and thoughtfully designed, with a fantastic bed and all the amenities you could ask for. Every area of the hotel felt luxurious without being pretentious.\n\nFacilities were outstanding, the food was excellent, and the overall atmosphere made it very hard to leave. It’s rare to find a hotel where everything just works, but this one truly does.\n\nIf you’re staying in [LOCATION], I couldn’t recommend this hotel more highly. I would absolutely return without hesitation.",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 4083,
+        "rating": 5,
+        "time": "-",
+        "review": "We spent a day here after attending a wedding at Huahin. It’s an all suites property in the city centre with close proximity to the river\n\nLarge spread out rooms with attached living area, small kitchenette and attached balconies.\n\n[LOCATION] is a big spread of Thai, global and Asian/Indian etc cuisines. The rooftop has a fabulous night club which has breathtaking views of the city\n\nWe went for a river cruise .. the pier is a 5 mins walk\n\nAlso visited the ICONSIAM mall which is very close\n\nOverall a fun place",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 4094,
+        "rating": 5,
+        "time": "-",
+        "review": "We loved everything about this hotel. Definitely book [HOTEL] access. We enjoyed the breakfast in the lounge more than the international buffet breakfast downstairs. (The breakfast buffet has a lot of variety and ok food, but it's crowded & noisy.)  The lounge on the other hand is a class act, quiet, nice view, with excellent cappuccinos, afternoon snacks (wine included) & evening treats. Our room was fabulous. We booked the 52nd floor (51+and up). Lucky us, we were upgraded to a suite (with five balconies ). We booked river view club level. The hotel pool is beautiful and the gym looked great. Check out the rooftop bar in the evening....great for a cocktail. Hotel location is about a 10 minute walk to the closest [LOCATION] station. The staff are wonderful, professional and helpful. I would stay here again. Thanks to the management team for running such a great hotel.",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 4100,
+        "rating": 5,
+        "time": "-",
+        "review": "I now can see why this hotel is rated #3 in [LOCATION] and #72 in the world. They offer an “over the top experience! Starting with their concierge service ([HOTEL]), restaurants ([NAME]), room and housekeeping services and the amazing views!\nThe concierge team , lead by [NAME] and [NAME], made recommendations and reservations, for every request. I would describe what I was looking for, and they nailed every recommendation, while exceeding expectations. It was as if you received a recommendation from a best friend. \nTheir breakfast buffet is not to be missed. You will start your day greeted and seated by, hostess [NAME]. Her amazing smile and warm greeting started every day off with positive vibes.\nLastly, a must visit on there 64th floor “Sky Bar”. Vibes curator, “DJ Lucy Blue”\nCreates the perfect energy, while overlooking the city’s best view.",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 4107,
+        "rating": 5,
+        "time": "-",
+        "review": "Great hotel with opulent luxury.  Great location relatively close to most major sites and good area near river.  The view from the hotel balcony is excellent and the room is very large.  Great and attentive, helpful staff.  The breakfast buffet is really, really good.  The restaurants, bars, and rooftop (bar and restaurants) are extremely beautiful and opulent.  However, all of the dining and drinks are very overpriced.  Overall, really nice stay and good value (we paid much less than face value by booking early) for such an opulent hotel.  Would recommend if you get a good rate.",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 4117,
+        "rating": 3,
+        "time": "-",
+        "review": "Great location. We have stayed at the [HOTEL] a few times and the [LOCATION]. Always wanted to stay at [HOTEL]\".  Staff fantastic as usual in [LOCATION]. However the hotel was a bit disappointing. A beer at the 64th floor bar.....no beer. [HOTEL], cocktails and Prosecco at £45 per glass! We did manage to get 330 local beer at the 52nd roof top bar for £35 for 2! Appreciate these places are all about the prestige, but other hotels are much less for the same. We didnt spend much at the hotel as felt like a rip off! We stayed on the 24th floor...the room was ok. Very clean and great room service. But the room was pretty basic and cheap furniture. We explored the local area and visited some old haunts which worked out well as we had some great meals at good value. The hotel does offer a fantastic breakfast. Much better alternatives is the conclusion.",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 4131,
+        "rating": 5,
+        "time": "-",
+        "review": "Pao, and the French gentleman were two of the very best in terms of customer service and ensuring that I was enjoying my experience at the hotel. Their sincerity and professionalism truly showed. The views from the rooftop were truly amazing. The hotel food was excellent in the restaurant as well as room service. The hotel is also positioned conveniently within proximity to restaurants and shopping. I  highly recommend this hotel without reservation!",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 4140,
+        "rating": 5,
+        "time": "-",
+        "review": "It was an extraordinary experience! The service was impeccable from the minute we stepped off the taxi and back in another at checkout. [NAME], the guest relations manager at reception was very nice and had perfect English. He explained everything and took care of us personally throughout our stay. I have nothing bad to say about the hotel except I wish I had more time there!",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 6001,
+        "rating": 5,
+        "time": 1.0,
+        "review": "What We Adore Review\n\nFew hotels capture the spirit of [LOCATION] quite like [HOTEL_NAME]. Hidden along the Chao Phraya River, this intimate urban sanctuary feels worlds away from the city’s intensity. Designed with cinematic elegance, the property blends [NAME] glamour, antique collections, and lush tropical courtyards into one of the most distinctive luxury stays in [LOCATION].\n\nOur stay felt like stepping into a beautifully curated private residence – serene suites, impeccable service, and a riverside atmosphere that slows time. Whether drifting through the palm-filled gardens, dining by the water, or watching longtail boats pass at sunset, [HOTEL_NAME] offers a rare sense of calm in the heart of [LOCATION].\n\nA true hidden gem - and one of the most memorable hotels in the city.\n\nRead the full review on\nWhat We Adore Magazine",
+        "response": "Dear [NAME],\n\nThank you very much for your beautiful and thoughtful review. We are truly honored by your kind words and delighted that your experience at [HOTEL_NAME] captured the spirit and atmosphere we hope to share with every guest.\n\nIt means a great deal to hear that you enjoyed the sense of calm by the river, the gardens, and the overall feeling of staying in what feels like a private residence. Creating a peaceful sanctuary in the heart of [LOCATION] has always been part of the vision for [HOTEL_NAME].\n\nWe are also very grateful for your appreciation of the design and character of the hotel. Much of this comes from the passion and dedication of our owner and her family, who carefully curated the antiques and artwork that make the property feel like a living museum.\n\nMost importantly, thank you for recognizing the service from our team members who genuinely care for our guests each day. Your generous words truly encourage all of us.\n\nWe hope to have the pleasure of welcoming you back again in the future.\n\nKind regards\nReza\nGeneral Manager"
+    },
+    {
+        "id": 6006,
+        "rating": 5,
+        "time": 3.0,
+        "review": "A beautiful boutique hotel located on the [NAME] river. Very professional staff who are very helpful and very responsive. The public spaces are beautiful with a lovely plant atrium filled with a water feature.\n\nWe had a Garden View room which was very large and, as it says on the tin, has a view over the gardens. A very large and comfortable bed, plenty of storage space and a seating area. Lots go back wood so a little dark but light through the windows meant this wasn't an issue.\n\nThe bathroom had both a tub and a shower with plenty of hot water and towels.\n\nVery good aircon and housekeeping was of a very high standard.\n\nThe outside spaces are well maintained and there is a nice small pool and decked area on the river. The restaurant and bar both overlook the river and are very comfortable. The food was good and the staff very professional. \n\nThere is a boat dock from where you can take a free boat shuttle to various stops downriver.\n\nThe hotel is located in the administrative district of the city so there is nothing in the immediate vicinity of interest and you will need to take a taxi or tuktuk to the old city.\n\nInside it felt very tranquil with carefully curated public spaces. We used the music room but no one else seemed to use them.\n\nHighly recommended.",
+        "response": "Dear [NAME],\n\nThank you very much for taking the time to share such a thoughtful and detailed review of your stay with us at [HOTEL_NAME]. We are truly delighted to hear that you enjoyed the tranquility of the hotel, our riverside setting, and the carefully curated public spaces.\n\nIt’s wonderful to know that your Garden View room, the comfort of the bed, and the bathroom amenities met your expectations, and that our housekeeping and air-conditioning contributed to a comfortable stay. Your kind words about our team’s professionalism and responsiveness mean a great deal to us, as genuine service is something we take great pride in.\n\nWe’re also pleased you enjoyed the river views from the restaurant and bar, as well as the convenience of our complimentary boat shuttle along the Chao Phraya. While our location in the administrative district offers a peaceful retreat away from the bustle of the city, we appreciate your kind note for future guests regarding transportation to [LOCATION].\n\nThank you again for your recommendation. It was a pleasure to have you with us, and we sincerely hope to welcome you back for another quite escape by the river in the future.\n\nKind regards\n[NAME]\n\nGeneral Manager"
+    },
+    {
+        "id": 6009,
+        "rating": 3,
+        "time": 0.0,
+        "review": "We stayed for a couple of nights here in Nov in the river view suite. It's another [LOCATION] hotel and the hardware certainly delivered. We loved the design of the public space and the room. It has a very low room count of 40 and a relatively large ground for a hotel in [LOCATION] of this size. We loved the restaurant by the river and the pier, everything was in good shape. Food was some of the best hotel food we have had, both in terms of breakfast and dinner. The shuttle boat was absolutely lovely and they provided you with water and wet wipes too.\n\nHowever, let's move onto the negatives and why we couldn't give this place 5-star. \n1) the hotel seems consistently understaffed. it would take forever to get seated, get water, get someone to order food and to get refills of water. some of the staff were fantastic and some less so, maybe because they were stretched or stressed. Wedding dinner every night also seemed to drain some manpower away from the restaurants.\n\n2) some cleanliness issues - we wondered onto the 2nd floor and there was a spider web right outside one of the guest rooms. \n\n3) over the weekend, both days there were wedding receptions, so there were outside guests constantly walking from lobby to the venue and the story house was forever blocked off during the day. We could not visit it at all during our stay. \n\n4) spa massage experience were just okay, compared to what we had before coming to [HOTEL_NAME]. And if you juts go for the sauna, there was no one there to direct you or assist you.  We liked the somewhat location as a retreat, but for that to work the spa really has got to be on point. Otherwise one would feel somewhat trapped here with no good options to be had.\n\n5) at check out, the again was delay with luggage delivery from our room to the hotel car. The staff suggested we stood next to the vehicle in the heat while waiting for the luggage, to which I asked if he could just unlock the door and let us on, and they obliged. It's not something that should happen when you charge 5500THB++ AND give us a run down dirty old smelly third party [HOTEL] minivan. Mandarin Oriental charges 4k [HOTEL] for a hotel mercedes V-class. \n\n6) the hotel pool only had 4 cabanas, which were again constantly full and unavailable. You could be set up further out, which is no big deal, but it's a bit annoying you stay at a low room count hotel just to constantly find everything is full and slow. Pool service was good but slow. They give you sunscreen, towels, col water and some mango-orange ice smoothie which was delicious, but it took a long while to arrive. Maybe it's nit-picking but to me it just sort of defeats the point.\n\nOverall, we loved the hardware, the space, the food, the boat shuttle here. However on the whole, especially taking the price into consideration, it has become quite an average stay for us. We tried hard to love it and it simply isn't worth the price and service isn't up to standard. We would most certainly not be returning here for future stays.",
+        "response": "Dear [NAME],\n  \nThank you very much for taking the time to share such a detailed and thoughtful review of your recent stay with us. We truly appreciate your kind words regarding our design, riverfront setting, dining experience, and shuttle boat service. It is very rewarding to know that these elements left a positive impression on you.\n\nAt the same time, we are sincerely grateful for your honest and constructive feedback. We regret that several aspects of your experience did not meet your expectations, and we would like to extend our sincere apologies for the inconveniences you encountered.\nYour comments regarding staffing levels, service pace, and the impact of simultaneous wedding events have been carefully noted.\n\nWhile celebrations are an important part of our hotel’s atmosphere, we fully understand that they should never compromise the comfort, privacy, or experience of our in-house guests. We are reviewing our manpower planning and event coordination to ensure better balance going forward.\n\nWe are also concerned to learn about the cleanliness issue you observed, as this does not reflect our standards. Please be assured that this has been shared with our housekeeping and management teams for immediate reinforcement and closer inspection routines.\nYour feedback on the spa experience, including service presence and overall quality, is especially valuable. As you rightly mentioned, our location is meant to offer a sense of retreat, and the spa should be a highlight rather than a shortfall. \n\nWe are actively reviewing service flow, therapist training, and guest guidance to elevate this experience.\nWe sincerely apologize for the delays experienced during checkout, as well as for the transportation arrangement not meeting expectations. Your comparison and perspective are well noted, and we are reassessing both service coordination and third-party transportation standards to better align with the level of experience our guests deserve.\n\nRegarding the pool facilities and service timing, we appreciate your understanding while also acknowledging your frustration. Your comments help us identify where anticipation, speed, and availability can be improved particularly in a low room-count environment where exclusivity is expected.\n\nOnce again, thank you for sharing your feedback so openly and in such detail. While we regret that your stay did not fully meet your expectations, please know that your insights are invaluable and will be used directly to improve our guest experience across all touchpoints.\n\nWe truly appreciate the opportunity you gave us and hope that, in the future, we may have the chance to restore your confidence and welcome you back for a more seamless and memorable stay.\n\nWarm regards,\n[HOTEL]\nGeneral Manager"
+    },
+    {
+        "id": 6012,
+        "rating": 5,
+        "time": 10.0,
+        "review": "Incredible hotel, one of the best we have stayed at and we have been fortunate to stay at some of the best all over the world.   Rooms are large and well appointed, hotel is very well kept up, restaurant is excellent, and the gym is nice.   The concierge (they call it butler) is unbelievably helpful..   No task is too challenging - they even decorated our kids room with all sorts of halloween decor and treats for us when we were away for halloween.   Thank you [NAME]!!!   What a wonderful guy and team of butlers.   It made our kids whole trip (and got us out of trouble with them!).   And it wasnt even that expensive!   We would wholeheartedly recommend this place to anyone.",
+        "response": "Dear [NAME],\n\nThank you very much for your incredibly kind words. We are truly delighted to hear that your stay with us was such a memorable experience. Knowing that you and your family have travelled the world and still consider [HOTEL_NAME] among the best is an honor we deeply appreciate.\n\nWe are especially pleased that our butler team particularly [NAME] helped make your children’s Halloween so special. [NAME] is indeed a true diamond at [HOTEL_NAME], and your recognition means a great deal to him and to all of us.\n\nYour generous recommendation is the highest compliment we could receive. It was a pleasure having you and your family with us, and we sincerely hope to welcome you back to your home by the river again soon.\n\nWarmest regards,\nGeneral Manager"
+    },
+    {
+        "id": 6016,
+        "rating": 5,
+        "time": 167.0,
+        "review": "Wonderful hotel full of antiques, indoor/outdoor gardens, well appointed spa and fantastic restaurants.  I particularly liked the vinyl room (nice assortment of vinyl records) and high tea (with a gin, rather than tea option!).  The hotel is up-river from central [LOCATION] but easily accessible (they have their own private ferry boat that will take you [NAME]).  You also get a private butler who is helpful and can make arrangements for private excursions.  It's a bit pricy, but well worth the splurge.",
+        "response": "[HOTEL],\n\nThank you very much for your lovely review and for describing us as an oasis within the chaos. That is exactly the feeling we hope our guests experience when staying with us.\n\nWe are delighted that you enjoyed the antiques, the gardens, our spa, and restaurants. It is wonderful to hear that the vinyl room and our high tea experience, especially the gin option, added something special to your stay.\n\nWe are also pleased that the private boat service and butler assistance helped make exploring [LOCATION] easy and enjoyable. Our team takes great pride in creating a seamless and personal experience for every guest.\n\nThank you again for your kind words and recommendation. We truly hope to welcome you back for another memorable escape by the river.\n\nKind regards\nReza\nGeneral Manager"
+    },
+    {
+        "id": 6020,
+        "rating": 5,
+        "time": "-",
+        "review": "Was I in heaven?  Was it a dream?  I’ve stayed in so many hotels and the [NAME]…it’s another level.  [NAME].,.our butler, our friend..,made it even more special.  Do yourself a favour / stay here.  The beauty in every nook, the detail in every corner, the transcendence of real relaxation, of real luxury…I feel thankful to have been part of the oasis that is [HOTEL_NAME],",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 6023,
+        "rating": 5,
+        "time": "-",
+        "review": "This hotel was booked for us as part of a Kensington Tour and we could not have been happier with our stay. Our room was huge—bathroom was gigantic—and the furnishings were like nothing we have experienced at other hotels. The hotel itself has a museum-like quality and we enjoyed poking around. We enjoyed our several breakfasts, one lunch, and one dinner at the onsite restaurant, close to the river. Staff—including [HOTEL]—were attentive and friendly. For a small boutique hotel, the property was quite large and felt secluded right in the city. No complaints from us!",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 6027,
+        "rating": 5,
+        "time": "-",
+        "review": "The location of this hotel is perfect  - not too far away from the centre, but far enough away for peace and quiet. It’s a little Oasis by the riverside. The hotel’s shuttle boat is a good idea and a very relaxing way to get into the centre. \nThe design of the hotel is fantastic, with lots of interesting art work and artefacts on display. The pool, by the riverside is stunning. We didn’t try the spa, but it looked lovely. \nWe ate at the restaurant several times. Breakfast was included and was delicious, but we also ate lunch there twice and dinner once. We highly recommend the food and service. \nThe staff were all exemplary and so friendly and helpful.   A special thank you to our [HOTEL], who was always on hand to help with any questions we had. Also a big thank you to [LOCATION], the [HOTEL], who is excellent.",
+        "response": "⚠️ ไม่มีการตอบกลับจากโรงแรม"
+    },
+    {
+        "id": 6029,
+        "rating": 5,
+        "time": 5.0,
+        "review": "From the moment you walk in, the hotel and its staff ooze a wonderful blend of professionalism and friendliness. The hotel is set a bit out of the main city but this is easily overcome with their most own boat shuttling guests to specific points (even riverside restaurants) and re-collecting you at agreed times. This is a much more enjoyable way of getting around [LOCATION] than fighting the traffic. The room we stayed in on the third floor was spacious and lovely. The restaurant over looking the river serves a great breakfast too. The general manager ([HOTEL]) was a regular presence and also extremely friendly and helpful. All in all we would highly recommend this hotel and all of their lovely team.",
+        "response": "Dear [NAME]\n[HOTEL]\nGeneral Manager"
+    },
+    {
+        "id": 6034,
+        "rating": 5,
+        "time": 68.0,
+        "review": "Beautiful hotel by the river and we can’t express enough how the design was truly luxe. We loved the intimacy of the hotel and how it makes you feel like you’re in [LOCATION] era [LOCATION]. The service was super friendly and the pool was a lovely size. The breakfast was great and we definitely treated our self for this nice luxe experience away from the hustle and bustle of [LOCATION] busy. It was a great choice before embarking the rest of the time in [LOCATION]’s adventure time. Highly recommend The gorgeous Siam!",
+        "response": "Dear [NAME]\n[HOTEL]\nGeneral Manager"
+    },
+    {
+        "id": 6037,
+        "rating": 5,
+        "time": 117.0,
+        "review": "Anyone familiar with [NAME] recent projects - [LOCATION], [LOCATION], [NAME] etc. - will be expecting a stunning property.  [HOTEL_NAME] won't disappoint.\n\nBut even better is how the owners - a Thai family who apparently have a long history in hotels - have assembled a superb [HOTEL] and charming staff, together with a splendidly elegant river launch and numerous other small touches, for their flagship property.   It all combines to make [HOTEL_NAME] the best place to stay in [LOCATION].  Bar none. The celebrated [LOCATION] may have lots of  history and a more convenient location but [HOTEL_NAME] has better rooms, even more character and is simply nicer.\n\nNot inexpensive but for what you get, good value.",
+        "response": "Dear [NAME], we are able to create an atmosphere unlike any other in [LOCATION] and enjoy surprising guests at every opportunity\n\nThank you again and we truly hope to welcome you back soon.\nWarm wishes\n[HOTEL]\nGeneral Manager"
+    },
+    {
+        "id": 6040,
+        "rating": 5,
+        "time": 186.0,
+        "review": "We stayed here for three nights on our honeymoon. On arrival, they upgraded our room to a villa. The room was spectacular, tasteful, with modern touches. It had a plunge pool with a fountain, a second floor sun deck, huge stone bathtub, comfortable bedding. Really can’t say enough about the room. \n\nThe service was equally stunning; they seemed to delight in taking care of us. It was really above and beyond. For example, they knew our itinerary and made every arrangement including transportation and topped it off with a boxed breakfast(one like I have never seen) for our early departing flight. No brain cells were used on our part, which is always a goal on our vacations. Further, the general manager, [HOTEL], checked in on us multiple times and our butler Samet was an angel. \n\nIn summation, we highly recommend this hotel.  This level of luxury and service is hard to find regardless of the price.",
+        "response": "Dear [NAME], sending warm wishes from us all\n[HOTEL]\nGeneral Manager"
+    },
+    {
+        "id": 6044,
+        "rating": 5,
+        "time": 7.0,
+        "review": "The first reason that we opted to stay here was because we had  stayed once before in a [NAME] hotel and loved his style.\nWe were not let down at [HOTEL_NAME] as our stay was outstanding.\nRight from the get go when [NAME] was there to greet us.\n\nThe hotel has a cool backstory with the owner being a famous music star. He was involved in the design and the place is crammed full of quirky artwork.\n\nIt is well away from the madness of the city and it’s private boat is a must. We crammed in the railway market, the floating market and three of the biggest temples to visit.\n\nBut it is the level of service that incomparable. Our ‘butler’ was [NAME] who was incredible. I mentioned to him one day that I had seen a documentary about the first woman street vendor to get a [HOTEL] star. That night waiting in my room was a selection of noodles from [NAME] Fai. The next night [NAME] took a picture of us boarding the boat. On return to the room that night, he had put the picture in a frame in the room. Simple acts making it very personal.\n\nSadly [HOTEL] wouldn’t let me borrow [NAME] for the rest of the trip.\n\nThe best thing I can say about [HOTEL_NAME] is that it just didn’t feel like being in a hotel. It was like being a guest in a grand home, from the past, on the [NAME] river.\n\nAn absolutely outstanding hotel.",
+        "response": "Dear [NAME], [NAME] as they have some sense of what awaits....a truly unique experience...part hotel, part resort, part museum. A true collaboration with our owning family with over 10,000 pieces of artwork, antiques and curios throughout every corner of [HOTEL_NAME]. So I am delighted we lived up to expectations. \nYou are totally correct, our location in the royal district of [NAME] provides the ultimate Riverside  escape at the end of a day exploring all that [LOCATION] offers and I am happy to hear you managed to achieve so much during your time with us. \nOf course, I am most thrilled to hear that your Butler Khun Nat rose to such an exceptional level. As one of our newest Butlers, he is already a 'fan favorite', impressing on so many levels. So yes...sorry...I had to keep him instead of letting him go with you haha\nThank you again for such glowing remarks. [NAME] and I truly hope to welcome you back in the future.\nUntil then, warm wishes and safe travels,\n[HOTEL]\nGeneral Manager"
+    },
+    {
+        "id": 6048,
+        "rating": 5,
+        "time": 3.0,
+        "review": "We stayed here over ten years ago and loved it so much that it was a no brainer to come back for our one week stay in [LOCATION]. We were delighted to find the property to be as beautiful and the service as perfect as we remembered it to be. \n\nWe stayed in one of the suites behind the pool, and it was a beautiful space. It wouldn't do it justice to call it a room, they succeeded in creating a peaceful world unto its own with an outer door, a plunge pool, a terrace above that overlooks the river and a comfortable, spacious and beautiful quarters inside. Before our trip, my husband asked for the hotel to have mangosteens (my favorite fruit) placed in our room, and so I was so delighted to find a huge bowl of them that they replenished throughout our stay. Non-alcoholic beverages and snacks were complimentary as were the delicious banana chips that they make themselves. \n\n[HOTEL_NAME] also has a lovely and large selection of breakfast items — you can order as much as you want and everything is made to order. I stuck to the Thai breakfasts, which were all delicious (if you are a lover of pad see [HOTEL], get the seafood noodles!). My husband fell in love with the Thai omelet. I did once order the coconut waffles because I was attracted by the description, but I wouldn't recommend it; the waffles were soggy. \n\n- Highly recommend the massages at the spa, which is beautiful and very peaceful. The rates are more expensive than elsewhere but comparable to a serious Thai massage place in [LOCATION] (ergo affordable by [LOCATION] standards). \n\n- Don't recommend getting nails done at the spa. They have a very limited number of colors (5-6), and the pedicure is done lying on your back. I got a chip in one of my nails within two days in a place I've never gotten a chip before. There are a bunch of nice nail places in [LOCATION] (particularly around [HOTEL] near the [LOCATION]). \n\n- Do sign up for the cooking class. We had ours with the executive chef. He's from [LOCATION], but has lived in [LOCATION] for 17 years and is very knowledgeable. Going to the market with him was a wonderful experience because he could understand our questions and where we were coming from and explain everything to us. \n\n- I would not recommend the Thai dinner there. We invited Thai friends on our last night and while the setting was beautiful, it was extremely disappointing, easily the worst meal we had on our trip. The soft shell crabs  in particular uniformly arrived cold, which was a mystery since you would hope they would serve it as soon as it came out of the fryer. The tuna dish was excellent, but everything else was ordinary, and the service was confused, to put it mildly. For example, we clearly explained that one person could not take spice, but everyone else could, and instead of adjusting just one dish, they adjusted all of them. \n\n-",
+        "response": "Dear [NAME]\nThank you for highly recommending [HOTEL_NAME] following your return to our riverside escape after ten years. It was a pleasure to meet you and [NAME] personally during your time with us and we are delighted to hear that we lived up to your previous memories overall.\n\nI am delighted to hear that you enjoyed [HOTEL], one of four villas with upstairs terrace overlooking the Chao Phraya River. It is true that these villas are more than most people would expect in a city such as [LOCATION]. A true oasis to escape to at the end of a day exploring all [LOCATION] has to offer, complete with it’s very own private courtyard and plunge pool.\n\nWhile I am sorry to hear your feedback about our pedicure service, thank you for sharing these details with us for discussion with our team.\n\nAdditionally, I know [NAME] was delighted to personally take care of you both and your friend for our unique riverside cooking class experience. I hear he remained in touch even after your departure to share his recipes for you to continue to create at home which I certainly hope helped you create some magic in your kitchen also! And while we are happy to hear you loved most of our breakfast items, we are somewhat surprised and of course disappointed to hear of your other feedback about your dining experience with us.  Regardless, now that we know… I promise we take such feedback to heart with a view to continuing to improve as we always endeavor to please each and every guest. \n\nThank you again for choosing to return to [HOTEL_NAME]. We truly hope it wont be another ten years before we have the chance to welcome you back. At which time I am positive we can impress on every level.\n\nWishing you wonderful travels ahead.\n[NAME]\nGeneral Manager."
+    },
+    {
+        "id": 6051,
+        "rating": 5,
+        "time": 35.0,
+        "review": "If you like understated luxury, exceptional hospitality and beautiful objets d’art, [HOTEL_NAME] is the place for you. The setting on the river is beautiful and you can easily get around [LOCATION] with the hotel shuttle boat and access to taxis and tuk-tuks. [NAME], the [HOTEL], runs a great team and is ever present which added such a warm touch to our stay. Additionally, a shout-out to [NAME] (our “butler”) who couldn’t do enough for us. \n\nAll around, a fabulous few days and can’t wait until we can return to this lovely property.",
+        "response": "Dear [NAME]\nWarm wishes from [HOTEL], myself and The [NAME] family,\n[HOTEL]\nGeneral Manager"
+    }
+]
+    // 1. ดึงค่าเดิมจากความจำเครื่อง (ถ้าไม่มีให้เริ่มที่ 0)
+    let currentIndex = parseInt(localStorage.getItem(EXPERT_NAME + '_progress'));
+    if (isNaN(currentIndex)) {
+        currentIndex = 0;
+    }
+
+    function renderItem() {
+        if (currentIndex >= dataset.length) {
+            confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 }
+            });
+            document.querySelector('.container').innerHTML = "<h1>🎉 ยินดีด้วยค่ะ! คุณทำครบแล้ว</h1>";
+            return;
+        }
+
+        // อัปเดตลำดับข้อ (บวก 1 เพราะ index เริ่มที่ 0)
+        document.getElementById('currentNumber').innerText = currentIndex + 1;
+        document.getElementById('totalNumber').innerText = dataset.length;        
+
+        let item = dataset[currentIndex];
+        document.getElementById('reviewText').innerText = item.review;
+        document.getElementById('responseText').innerText = item.response;
+        document.getElementById('dataId').innerText = item.id;
+        document.getElementById('rating').innerText = item.rating;
+        document.getElementById('time').innerText = item.time;
+        document.getElementById('comments').innerText = item.comments;
+        
+        // แสดงเปอร์เซ็นต์ความคืบหน้า
+        let total = dataset.length;
+        let percent = ((currentIndex / total) * 100).toFixed(1);
+
+        // update progress bar
+        const progressBar = document.getElementById('progressBar');
+        const progressPercent = document.getElementById('progressPercent');
+
+        // เงื่อนไขเปลี่ยนสี
+        if (percent < 30) {
+            progressBar.className = "progress-bar progress-bar-striped progress-bar-animated bg-danger"; // สีแดง
+        } else if (percent < 70) {
+            progressBar.className = "progress-bar progress-bar-striped progress-bar-animated bg-warning text-dark"; // สีเหลือง
+        } else {
+            progressBar.className = "progress-bar progress-bar-striped progress-bar-animated bg-success"; // สีเขียว
+        }
+
+        progressBar.style.width = percent + "%";
+        
+        progressBar.innerText = ` ${currentIndex} / ${total} `; // show number in green bar
+        progressPercent.innerText = percent + "%"; // show percent at right conner
+
+        // document.getElementById('progressPecent').innerText = percent + "%"; // show percent at right conner
+
+        document.getElementById('topic').value = "";
+        window.scrollTo(0,0);
+
+        // ถ้าอยู่ข้อแรก (0) ให้ซ่อนปุ่ม Back หรือจางลงเพื่อไม่ให้สับสน
+        const btnBack = document.getElementById('btnBack');
+        if (currentIndex === 0) {
+            btnBack.style.opacity = "0.5";
+            btnBack.disabled = true;
+        } else {
+            btnBack.style.opacity = "1";
+            btnBack.disabled = false;
+        }    
+    }
+
+    // ฟังก์ชันสำหรับย้อนกลับไป 1 รายการ
+    function goBack() {
+        if (currentIndex > 0) {
+            currentIndex--; // ลดลำดับลง 1
+            localStorage.setItem(EXPERT_NAME + '_progress', currentIndex.toString()); // บันทึกตำแหน่งใหม่
+            renderItem(); // สั่งวาดหน้าจอใหม่
+            
+            // แจ้งเตือนน่ารักๆ ว่าย้อนกลับมาแล้ว
+            const progressText = document.getElementById('progressText');
+            progressText.innerHTML += ' <span class="badge bg-warning text-dark animate__animated animate__fadeIn">ย้อนกลับมาแก้ไขข้อนี้ได้เลยค่ะ ✨</span>';
+        } else {
+            alert("นี่คือรายการแรกแล้วค่ะคุณแม่ ไม่สามารถย้อนกลับได้มากกว่านี้แล้วนะคะ 😊");
+        }
+    }
+
+    async function submitAndNext() {
+        let topic = document.getElementById('topic').value;
+        if (!topic) { alert("กรุณาเลือก Topic ก่อนนะคะ"); return; }
+        let comment = document.getElementById('comments').value;
+        if (!comment) { comment = "N/A"; } // ถ้าไม่มีคอมเมนต์ ให้ใส่ N/A แทน
+
+        let payload = {
+            id: dataset[currentIndex].id,
+            topic: topic,
+            sarcasm: document.getElementById('sarcasm').value,
+            sincerity: document.getElementById('sincerity').value,
+            comment: comment,
+            expertName: EXPERT_NAME
+        };
+
+        const btn = document.querySelector('.btn-next');
+        btn.innerText = `
+            กำลังบันทึก...
+        `;
+        btn.disabled = true;
+
+        try {
+            // ส่งข้อมูลไป Google Sheets
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                cache: 'no-cache',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            // เนื่องจากใช้ mode: 'no-cors' เราจะไม่เห็น Response body 
+            // แต่ถ้าโค้ดรันมาถึงบรรทัดนี้ได้ (ไม่ตกไป catch) แสดงว่าส่งออกไปสำเร็จแล้ว
+
+            // --- จุดสำคัญ: บันทึกตำแหน่งใหม่ลง Local Storage ทันที ---
+            currentIndex++;
+            localStorage.setItem(EXPERT_NAME + '_progress', currentIndex.toString());
+            
+            btn.innerText = ` 
+                บันทึก และไปรายการถัดไป
+            `;
+            btn.disabled = false;
+            renderItem();
+
+        } catch (error) {
+            console.error("Error submitting data:", error);     
+            alert("การเชื่อมต่อมีปัญหา ข้อมูลอาจไม่เข้า Sheet กรุณาลองกดอีกครั้งค่ะ");
+            btn.innerText = `
+                ลองบันทึกอีกครั้ง
+            `;
+            btn.disabled = false;
+        }
+    }
+
+    // ฟังก์ชันเช็คสถานะจาก Google Sheets เมื่อเปิดหน้าเว็บ
+    async function syncProgressWithSheet() {
+        const loadingModal = document.getElementById('loadingOverlay'); // ถ้ามีตัวหมุนรอจะดีมากค่ะ
+        
+        try {
+            // วิ่งไปถาม Google Sheets ว่า "Expert คนนี้ทำถึงไหนแล้ว?"
+            const response = await fetch(`${SCRIPT_URL}?expert=${EXPERT_NAME}`);
+            const result = await response.json();
+            
+            if (result.lastId) {
+                // ค้นหาว่า ID นั้นอยู่ที่ลำดับที่เท่าไหร่ใน dataset (1,060 ข้อ)
+                const foundIndex = dataset.findIndex(item => item.id === result.lastId);
+                
+                if (foundIndex !== -1) {
+                    // วาร์ปไปข้อถัดไปทันที
+                    currentIndex = foundIndex + 1;
+                    localStorage.setItem('maeChada_progress', currentIndex);
+                    alert(`✨ ยินดีต้อนรับกลับมาค่ะคุณ ${EXPERT_NAME}\nระบบดึงข้อมูลล่าสุดที่คุณทำค้างไว้ (ข้อที่ ${currentIndex}) มาให้แล้วนะคะ`);
+                    renderItem();
+                }
+            }
+        } catch (error) {
+            console.log("ยังไม่มีประวัติในระบบ หรือการเชื่อมต่อขัดข้อง");
+        }
+    }
+
+    // เรียกใช้ฟังก์ชันนี้ตอนโหลดหน้าเว็บ
+    window.onload = syncProgressWithSheet;
+
+    // ฟังก์ชันสำหรับเริ่มใหม่ (เผื่อทำผิดเยอะแล้วอยากล้างกระดาน)
+    function resetProgress() {
+        if(confirm("คำเตือน: คุณกำลังจะล้างสถานะการทำ และกลับไปเริ่มที่รายการที่ 1 ใหม่ ยืนยันหรือไม่?")) {
+            localStorage.removeItem(EXPERT_NAME + '_progress');
+            currentIndex = 0;
+            location.reload();
+        }
+    }
+
+    renderItem();
+</script>
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>    
+
+</body>
+</html>
